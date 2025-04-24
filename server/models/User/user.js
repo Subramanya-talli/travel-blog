@@ -1,4 +1,6 @@
 const {Schema, model} = require("mongoose")
+const bcrypt = require("bcrypt");
+const secret_key = process.env.my_secret_key;
 
 const userSchema = Schema({
     name: {
@@ -35,7 +37,19 @@ const userSchema = Schema({
     timeStamps : true
 });
 
+userSchema.pre('save', (next)=>{
+    if(!this.ismodified('password')) return next();
+
+    bcrypt.genSalt(10, function(err, salt){
+        bcrypt.hash(secret_key, salt, function(err, hashedPassword){
+            this.password = hashedPassword;
+        })
+    })
+})
+
 
 const User = model('User', userSchema);
+
+
 
 module.exports = User;
